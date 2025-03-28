@@ -1,2 +1,5 @@
 .repomix
 repomix-output.txt
+bin/
+temp/
+obj/Debug/
