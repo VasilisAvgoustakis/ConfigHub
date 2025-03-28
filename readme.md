@@ -15,9 +15,17 @@ ConfigHub is a centralized solution for application configuration management. At
 - CRUD operations on configurations
 - Basic security with API keys or JWT tokens
 
-#### Web Dashboard (Optional)
+### Web Dashboard
 - View configurations, update settings
 - Audit log viewer showing historical changes
+
+### Logging & Diagnostics
+- Serilog Integration
+
+### Testing Requirements
+- NUnit Library
+- Unit test coverage
+- API Integration test demonstrating real-world usage
 
 #### Deliverables:
 - Complete source code
