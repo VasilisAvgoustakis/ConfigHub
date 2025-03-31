@@ -1,10 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Text.Json;
+﻿using System.Text.Json;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using System.IO;
 using Serilog;
+using System.Threading.Tasks;
 
 namespace ConfigManagement
 {
@@ -16,20 +14,10 @@ namespace ConfigManagement
     private static ConfigHub? _instance;
     private static JsonSerializerOptions? _options;
     private readonly ISerializer _yamlSerializer;
-    public static ConfigHub Instance
-    {
-      get
-      {
-        if (_instance == null)
-        {
-          lock (_lock)
-          {
-            _instance ??= new ConfigHub();
-          }
-        }
-        return _instance;
-      }
-    }
+    private readonly IDeserializer _yamlDeserializer;
+
+    private static readonly Lazy<ConfigHub> _instanceLazy = new (() => new ConfigHub());
+    public static ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
 
     private ConfigHub()
     {
@@ -48,6 +36,11 @@ namespace ConfigManagement
       .WithNamingConvention(CamelCaseNamingConvention.Instance)
       .WithIndentedSequences()
       .Build();
+
+      // initialize the yaml deserializer
+      _yamlDeserializer = new DeserializerBuilder()
+      .WithNamingConvention(CamelCaseNamingConvention.Instance)
+      .Build();
     } 
 
     // Deserializes from json text file
@@ -61,7 +54,7 @@ namespace ConfigManagement
       catch(Exception ex)
       {
         // log the exception and rethrow, we leave it to the caller to decide how to handle the exception
-        Log.Error("Error during Deserialization:", ex);
+        Log.Error(ex, "Error during Deserialization");
         throw;
       }
     }
@@ -75,62 +68,72 @@ namespace ConfigManagement
       }
       catch (Exception ex)
       {
-        Log.Error("Error during async Deserialization: ", ex);
+        Log.Error(ex, "Error during async Deserialization");
         throw;
       }
     }
 
-    public void LoadFromYaml(string filePath)
-    {
-      
-    }
-
-    public void SaveToJson<T>(T serialiazableObject, string filePath)
+    public T LoadFromYaml<T>(string filePath)
     {
       try
       {
-        string fileName = $"{filePath}/{serialiazableObject?.GetType().Name}.json";
-        string jsonString = JsonSerializer.Serialize<T>(serialiazableObject, _options);
+        string? yamlString = File.ReadAllText(filePath);
+        return _yamlDeserializer.Deserialize<T>(yamlString); 
+      }
+      catch(Exception ex)
+      {
+        Log.Error(ex, "Error during YAML Deserialization");
+        throw;
+      }
+    }
+
+
+    public void SaveToJson<T>(T serializableObject, string filePath)
+    {
+      try
+      {
+        string fileName = $"{filePath}/{serializableObject?.GetType().Name}.json";
+        string jsonString = JsonSerializer.Serialize<T>(serializableObject, _options);
         File.WriteAllText(fileName, jsonString); 
         Log.Information("Serialized to JSON file: ", fileName);
       }
       catch (Exception ex)
       {
-        Log.Error("Error while Serializing to Json Text file: ", ex);
+        Log.Error(ex, "Error while Serializing to Json Text file");
         throw;
       }
     }
 
-    public async Task SaveToJsonAsync<T>(T serialiazableObject, string filePath)
+    public async Task SaveToJsonAsync<T>(T serializableObject, string filePath)
     {
       try
       {
-        string fileName = $"{filePath}/{serialiazableObject?.GetType().Name}.json";
+        string fileName = $"{filePath}/{serializableObject?.GetType().Name}.json";
         await using FileStream createStream = File.Create(fileName);
-        await JsonSerializer.SerializeAsync(createStream, serialiazableObject, _options);
-        Log.Information("Serialized Async to File: ", fileName);  
+        await JsonSerializer.SerializeAsync(createStream, serializableObject, _options);
+        Log.Information("Serialized Async to JSON File: ", fileName);  
       }
       catch (Exception ex)
       {
-        Log.Error("Error during async Serialization: ", ex);
+        Log.Error(ex, "Error during async Serialization");
       }
     }
 
-    public void SaveToYaml<T>(T serialiazableObject, string filePath)
+    public void SaveToYaml<T>(T serializableObject, string filePath)
     {
       try
       {
-        string fileName = $"{filePath}/{serialiazableObject?.GetType().Name}.yml";
-        string yamlString = _yamlSerializer.Serialize(serialiazableObject);
+        string fileName = $"{filePath}/{serializableObject?.GetType().Name}.yml";
+        string yamlString = _yamlSerializer.Serialize(serializableObject);
         File.WriteAllText(fileName, yamlString); 
+        Log.Information("Serialized to YAML file: ", fileName);
       }
       catch (Exception ex)
       {
-        Log.Error("Error during Seriliaztion to YAML File: ", ex);
+        Log.Error(ex, "Error during Serilization to YAML File.");
         throw;
       }
-    }
-    
+    } 
   }
 }
 

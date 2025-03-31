@@ -8,7 +8,7 @@ public class Program
 
   public class WeatherForecast
   {
-      public DateTimeOffset Date { get; set; }
+      public DateTime Date { get; set; }
       public int TemperatureCelsius { get; set; }
       public string? Summary { get; set; }
   }
@@ -27,29 +27,35 @@ public class Program
       Summary = "Hot"
     };
 
-    // serialize the WeatherForecast Object to a json text file
-    // Console.WriteLine("Serializing to Temp: ");
-    // configManager.SaveToJson(weatherForecast, "./temp");
+    //serialize the WeatherForecast Object to a json text file
+    Console.WriteLine("Serializing to Temp: ");
+    configManager.SaveToJson(weatherForecast, "./temp");
 
     // deserialize from json
-    // Console.WriteLine("Deserializing: ");
-    // weatherForecast = configManager.LoadFromJson<WeatherForecast>("./temp/WeatherForecast.json");
-    // Console.WriteLine($"Date: {weatherForecast?.Date}");
-    // Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
-    // Console.WriteLine($"Summary: {weatherForecast?.Summary}");
+    Console.WriteLine("Deserializing: ");
+    weatherForecast = configManager.LoadFromJson<WeatherForecast>("./temp/WeatherForecast.json");
+    Console.WriteLine($"Date: {weatherForecast?.Date}");
+    Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
+    Console.WriteLine($"Summary: {weatherForecast?.Summary}");
 
-    // Console.WriteLine("Serializing Async: ");
-    // await configManager.SaveToJsonAsync(weatherForecast, "./temp");
+    Console.WriteLine("Serializing Async: ");
+    await configManager.SaveToJsonAsync(weatherForecast, "./temp");
 
-    // Console.WriteLine("Deserializing Async: ");
-    // weatherForecast = await configManager.LoadFromJsonAsync<WeatherForecast>("./temp/WeatherForecast.json");
-    // Console.WriteLine($"Date: {weatherForecast?.Date}");
-    // Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
-    // Console.WriteLine($"Summary: {weatherForecast?.Summary}");
+    Console.WriteLine("Deserializing Async: ");
+    weatherForecast = await configManager.LoadFromJsonAsync<WeatherForecast>("./temp/WeatherForecast.json");
+    Console.WriteLine($"Date: {weatherForecast?.Date}");
+    Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
+    Console.WriteLine($"Summary: {weatherForecast?.Summary}");
 
     Console.WriteLine("Serilizing to yaml: ");
     configManager.SaveToYaml(weatherForecast, "./temp");
 
+
+    Console.WriteLine("Deserialiazing from yaml: ");
+    WeatherForecast weatherForecast_ = configManager.LoadFromYaml<WeatherForecast>("./temp/WeatherForecast.yml");
+    Console.WriteLine($"Date: {weatherForecast_?.Date}");
+    Console.WriteLine($"TemperatureCelsius: {weatherForecast_?.TemperatureCelsius}");
+    Console.WriteLine($"Summary: {weatherForecast_?.Summary}");
   }
 
 }
