@@ -17,7 +17,7 @@ public class Program
   public static async Task Main()
   { 
     // get the Singleton instance of the ConfigHub class
-    //ConfigHub configManager = ConfigHub.Instance;
+    ConfigHub configManager = ConfigHub.Instance;
     
     // create a WeatherForecast instance
     var weatherForecast = new WeatherForecast()
@@ -28,24 +28,27 @@ public class Program
     };
 
     // serialize the WeatherForecast Object to a json text file
-    Console.WriteLine("Serializing to Temp: ");
-    ConfigHub.SaveToJson(weatherForecast, "./temp");
+    // Console.WriteLine("Serializing to Temp: ");
+    // configManager.SaveToJson(weatherForecast, "./temp");
 
     // deserialize from json
-    Console.WriteLine("Deserializing: ");
-    weatherForecast = ConfigHub.LoadFromJson<WeatherForecast>("./temp/WeatherForecast.json");
-    Console.WriteLine($"Date: {weatherForecast?.Date}");
-    Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
-    Console.WriteLine($"Summary: {weatherForecast?.Summary}");
+    // Console.WriteLine("Deserializing: ");
+    // weatherForecast = configManager.LoadFromJson<WeatherForecast>("./temp/WeatherForecast.json");
+    // Console.WriteLine($"Date: {weatherForecast?.Date}");
+    // Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
+    // Console.WriteLine($"Summary: {weatherForecast?.Summary}");
 
-    Console.WriteLine("Serializing Async: ");
-    await ConfigHub.SaveToJsonAsync(weatherForecast, "./temp");
+    // Console.WriteLine("Serializing Async: ");
+    // await configManager.SaveToJsonAsync(weatherForecast, "./temp");
 
-    Console.WriteLine("Deserializing Async: ");
-    weatherForecast = await ConfigHub.LoadFromJsonAsync<WeatherForecast>("./temp/WeatherForecast.json");
-    Console.WriteLine($"Date: {weatherForecast?.Date}");
-    Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
-    Console.WriteLine($"Summary: {weatherForecast?.Summary}");
+    // Console.WriteLine("Deserializing Async: ");
+    // weatherForecast = await configManager.LoadFromJsonAsync<WeatherForecast>("./temp/WeatherForecast.json");
+    // Console.WriteLine($"Date: {weatherForecast?.Date}");
+    // Console.WriteLine($"TemperatureCelsius: {weatherForecast?.TemperatureCelsius}");
+    // Console.WriteLine($"Summary: {weatherForecast?.Summary}");
+
+    Console.WriteLine("Serilizing to yaml: ");
+    configManager.SaveToYaml(weatherForecast, "./temp");
 
   }
 

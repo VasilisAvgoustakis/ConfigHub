@@ -13,11 +13,9 @@ namespace ConfigManagement
   {
     // a lock object that will be used to synchronize threads during first access to the Singleton
     private static readonly object _lock = new object();
-    
-
     private static ConfigHub? _instance;
-
     private static JsonSerializerOptions? _options;
+    private readonly ISerializer _yamlSerializer;
     public static ConfigHub Instance
     {
       get
@@ -44,10 +42,16 @@ namespace ConfigManagement
 
       // initialize Serializer options
       _options = new JsonSerializerOptions{WriteIndented = true};
+
+      // initialize the yaml Serializer
+      _yamlSerializer = new SerializerBuilder()
+      .WithNamingConvention(CamelCaseNamingConvention.Instance)
+      .WithIndentedSequences()
+      .Build();
     } 
 
     // Deserializes from json text file
-    public static T LoadFromJson<T>(string filePath)
+    public T LoadFromJson<T>(string filePath)
     {
       try
       {
@@ -62,7 +66,7 @@ namespace ConfigManagement
       }
     }
 
-    public static async Task<T?> LoadFromJsonAsync<T>(string filePath)
+    public async Task<T?> LoadFromJsonAsync<T>(string filePath)
     {
       try
       {
@@ -81,7 +85,7 @@ namespace ConfigManagement
       
     }
 
-    public static void SaveToJson<T>(T serialiazableObject, string filePath)
+    public void SaveToJson<T>(T serialiazableObject, string filePath)
     {
       try
       {
@@ -97,7 +101,7 @@ namespace ConfigManagement
       }
     }
 
-    public static async Task SaveToJsonAsync<T>(T serialiazableObject, string filePath)
+    public async Task SaveToJsonAsync<T>(T serialiazableObject, string filePath)
     {
       try
       {
@@ -112,9 +116,19 @@ namespace ConfigManagement
       }
     }
 
-    public void SaveToYaml(string filePath)
+    public void SaveToYaml<T>(T serialiazableObject, string filePath)
     {
-
+      try
+      {
+        string fileName = $"{filePath}/{serialiazableObject?.GetType().Name}.yml";
+        string yamlString = _yamlSerializer.Serialize(serialiazableObject);
+        File.WriteAllText(fileName, yamlString); 
+      }
+      catch (Exception ex)
+      {
+        Log.Error("Error during Seriliaztion to YAML File: ", ex);
+        throw;
+      }
     }
     
   }
