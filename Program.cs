@@ -42,7 +42,7 @@ public class Program
                 })
                 .Build();
       
-      host.Run();
+      //host.Run();
 
       
       // get the Singleton instance of the ConfigHub class from Host

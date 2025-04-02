@@ -6,3 +6,4 @@ obj/Debug/
 logs/
 
 obj/project.nuget.cache
+ConfigHubTests/obj/Debug

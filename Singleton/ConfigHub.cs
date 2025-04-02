@@ -8,7 +8,7 @@ using Serilog;
 namespace ConfigManagement
 {
   //Double check lock and lazy initialization for safe multithreading
-  class ConfigHub
+  public class ConfigHub
   {
     private ILogger<ConfigHub> _logger;
     private static JsonSerializerOptions? _options;
@@ -23,10 +23,10 @@ namespace ConfigManagement
       }
       }
 
-    private static Lazy<ConfigHub> _instanceLazy; 
-    public static ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
+    private Lazy<ConfigHub> _instanceLazy; 
+    public ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
 
-    private ConfigHub(ILogger<ConfigHub> logger)
+    public ConfigHub(ILogger<ConfigHub> logger)
     {
       _logger = logger;
       _instanceLazy = new (() => new ConfigHub(_logger));

@@ -69,6 +69,10 @@
             "YamlDotNet": {
               "target": "Package",
               "version": "[16.3.0, )"
+            },
+            "nunit": {
+              "target": "Package",
+              "version": "[4.3.2, )"
             }
           },
           "imports": [
