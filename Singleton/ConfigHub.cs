@@ -1,35 +1,43 @@
 ﻿using System.Text.Json;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Microsoft.Extensions.Logging;
 using Serilog;
-using System.Threading.Tasks;
+
 
 namespace ConfigManagement
 {
   //Double check lock and lazy initialization for safe multithreading
   class ConfigHub
   {
-    // a lock object that will be used to synchronize threads during first access to the Singleton
-    private static readonly object _lock = new object();
-    private static ConfigHub? _instance;
+    private ILogger<ConfigHub> _logger;
     private static JsonSerializerOptions? _options;
     private readonly ISerializer _yamlSerializer;
     private readonly IDeserializer _yamlDeserializer;
 
-    private static readonly Lazy<ConfigHub> _instanceLazy = new (() => new ConfigHub());
+    private Dictionary<string, object> _configStore;
+    public Dictionary<string, object> ConfigStore {
+      get
+      {
+        return _configStore;
+      }
+      }
+
+    private static Lazy<ConfigHub> _instanceLazy; 
     public static ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
 
-    private ConfigHub()
+    private ConfigHub(ILogger<ConfigHub> logger)
     {
-      // Setup Logger
-      Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .WriteTo.File("logs/_log.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
-      Log.Information("ConfigHub Singleton created!");
+      _logger = logger;
+      _instanceLazy = new (() => new ConfigHub(_logger));
+      
+      _logger.LogInformation("ConfigHub Singleton created!");
 
       // initialize Serializer options
       _options = new JsonSerializerOptions{WriteIndented = true};
+
+      // initialize _configStore
+      _configStore = new();
 
       // initialize the yaml Serializer
       _yamlSerializer = new SerializerBuilder()
@@ -48,41 +56,56 @@ namespace ConfigManagement
     {
       try
       {
+        // read all text from file
         string? jsonString = File.ReadAllText(filePath);
-        return JsonSerializer.Deserialize<T>(jsonString)!; 
+        // deserialize to T object
+        T jsonObject = JsonSerializer.Deserialize<T>(jsonString)!;  
+        // keep json object in memory for quick access
+        _configStore.Add(jsonObject.GetType().Name, jsonObject);
+        // finally return the object
+        return jsonObject;
       }
       catch(Exception ex)
       {
         // log the exception and rethrow, we leave it to the caller to decide how to handle the exception
-        Log.Error(ex, "Error during Deserialization");
+        _logger.LogError(ex, "Error during Deserialization");
         throw;
       }
     }
 
-    public async Task<T?> LoadFromJsonAsync<T>(string filePath)
+    public async Task<T> LoadFromJsonAsync<T>(string filePath)
     {
       try
       {
+        // Create a stream of the file's contents
         using FileStream openStream = File.OpenRead(filePath);
-        return await JsonSerializer.DeserializeAsync<T>(openStream);
+        // asynchronously create a jsonObject
+        T? jsonObject = await JsonSerializer.DeserializeAsync<T>(openStream); 
+        // add it to memory for quick access 
+        _configStore.Add(jsonObject.GetType().Name, jsonObject);
+        // returne the jsonObject
+        return jsonObject;
       }
       catch (Exception ex)
       {
-        Log.Error(ex, "Error during async Deserialization");
+        _logger.LogError(ex, "Error during async Deserialization");
         throw;
       }
     }
+
 
     public T LoadFromYaml<T>(string filePath)
     {
       try
       {
         string? yamlString = File.ReadAllText(filePath);
-        return _yamlDeserializer.Deserialize<T>(yamlString); 
+        T yamlObject = _yamlDeserializer.Deserialize<T>(yamlString); 
+        _configStore.Add(yamlObject.GetType().Name, yamlObject);
+        return yamlObject;
       }
       catch(Exception ex)
       {
-        Log.Error(ex, "Error during YAML Deserialization");
+        _logger.LogError(ex, "Error during YAML Deserialization");
         throw;
       }
     }
@@ -92,10 +115,10 @@ namespace ConfigManagement
     {
       try
       {
-        string fileName = $"{filePath}/{serializableObject?.GetType().Name}.json";
+        string fileName = BuildFileNameFromPath(serializableObject, filePath, "json");
         string jsonString = JsonSerializer.Serialize<T>(serializableObject, _options);
         File.WriteAllText(fileName, jsonString); 
-        Log.Information("Serialized to JSON file: ", fileName);
+        _logger.LogInformation($"Serialized to JSON file:{fileName}");
       }
       catch (Exception ex)
       {
@@ -108,10 +131,10 @@ namespace ConfigManagement
     {
       try
       {
-        string fileName = $"{filePath}/{serializableObject?.GetType().Name}.json";
+        string fileName = BuildFileNameFromPath(serializableObject, filePath, "json");
         await using FileStream createStream = File.Create(fileName);
         await JsonSerializer.SerializeAsync(createStream, serializableObject, _options);
-        Log.Information("Serialized Async to JSON File: ", fileName);  
+        _logger.LogInformation($"Serialized Async to JSON File:{fileName} ");  
       }
       catch (Exception ex)
       {
@@ -123,17 +146,25 @@ namespace ConfigManagement
     {
       try
       {
-        string fileName = $"{filePath}/{serializableObject?.GetType().Name}.yml";
+        string fileName = BuildFileNameFromPath(serializableObject, filePath, "yml");
         string yamlString = _yamlSerializer.Serialize(serializableObject);
         File.WriteAllText(fileName, yamlString); 
-        Log.Information("Serialized to YAML file: ", fileName);
+        _logger.LogInformation($"Serialized to YAML file: {fileName} ");
       }
       catch (Exception ex)
       {
         Log.Error(ex, "Error during Serilization to YAML File.");
         throw;
       }
-    } 
+    }   
+
+
+    // Helper function to build file from path, object name and format type
+    private static string BuildFileNameFromPath<T>(T serializableObject, string filePath, string fileType)
+    {
+      string fileName = $"{filePath}/{serializableObject?.GetType().Name}.{fileType}";
+      return fileName;
+    }
   }
 }
 
