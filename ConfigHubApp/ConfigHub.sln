@@ -4,7 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigHub", "ConfigHub.csproj", "{82DA00DE-E0DF-7A55-DCAB-3081717E1BA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigHubTests", "ConfigHubTests\ConfigHubTests.csproj", "{8780DAC4-69F1-4F70-AF3F-8D99B90D0A1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigHubTests", "..\ConfigHubTests\ConfigHubTests.csproj", "{8780DAC4-69F1-4F70-AF3F-8D99B90D0A1C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

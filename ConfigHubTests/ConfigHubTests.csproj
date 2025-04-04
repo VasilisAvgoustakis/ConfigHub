@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ConfigHub.csproj" />
+    <ProjectReference Include="..\ConfigHubApp\ConfigHub.csproj" />
   </ItemGroup>
 
 </Project>
