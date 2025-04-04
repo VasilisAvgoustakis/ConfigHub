@@ -30,7 +30,6 @@ namespace ConfigManagement
     {
       _settings = settings;
       _logger = logger;
-      //_instanceLazy = new (() => new ConfigHub(_settings, _logger));
       
       _logger.LogInformation("ConfigHub initialized with environment: {Env}", _settings.Value.Environment);
 
