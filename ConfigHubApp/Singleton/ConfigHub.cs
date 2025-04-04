@@ -26,9 +26,6 @@ namespace ConfigManagement
       }
       }
 
-    //private Lazy<ConfigHub> _instanceLazy; 
-    //public ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
-
     public ConfigHub(IOptions<AppSettings> settings, ILogger<ConfigHub> logger)
     {
       _settings = settings;
@@ -126,7 +123,7 @@ namespace ConfigManagement
       }
       catch (Exception ex)
       {
-        Log.Error(ex, "Error while Serializing to Json Text file");
+        _logger.Error(ex, "Error while Serializing to Json Text file");
         throw;
       }
     }
@@ -142,7 +139,7 @@ namespace ConfigManagement
       }
       catch (Exception ex)
       {
-        Log.Error(ex, "Error during async Serialization");
+        _logger.Error(ex, "Error during async Serialization");
       }
     }
 
@@ -157,7 +154,7 @@ namespace ConfigManagement
       }
       catch (Exception ex)
       {
-        Log.Error(ex, "Error during Serilization to YAML File.");
+        _logger.Error(ex, "Error during Serilization to YAML File.");
         throw;
       }
     }   
