@@ -3,6 +3,9 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using ConfigHubApp.Settings;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 
 namespace ConfigManagement
@@ -10,11 +13,11 @@ namespace ConfigManagement
   //Double check lock and lazy initialization for safe multithreading
   public class ConfigHub
   {
+    private readonly IOptions<AppSettings> _settings;
     private ILogger<ConfigHub> _logger;
     private static JsonSerializerOptions? _options;
     private readonly ISerializer _yamlSerializer;
     private readonly IDeserializer _yamlDeserializer;
-
     private Dictionary<string, object> _configStore;
     public Dictionary<string, object> ConfigStore {
       get
@@ -23,15 +26,16 @@ namespace ConfigManagement
       }
       }
 
-    private Lazy<ConfigHub> _instanceLazy; 
-    public ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
+    //private Lazy<ConfigHub> _instanceLazy; 
+    //public ConfigHub Instance => _instanceLazy.Value; //This approach automatically handles thread-safe, lazy instantiation, removing the need for manual locking.
 
-    public ConfigHub(ILogger<ConfigHub> logger)
+    public ConfigHub(IOptions<AppSettings> settings, ILogger<ConfigHub> logger)
     {
+      _settings = settings;
       _logger = logger;
-      _instanceLazy = new (() => new ConfigHub(_logger));
+      //_instanceLazy = new (() => new ConfigHub(_settings, _logger));
       
-      _logger.LogInformation("ConfigHub Singleton created!");
+      _logger.LogInformation("ConfigHub initialized with environment: {Env}", _settings.Value.Environment);
 
       // initialize Serializer options
       _options = new JsonSerializerOptions{WriteIndented = true};
@@ -41,14 +45,14 @@ namespace ConfigManagement
 
       // initialize the yaml Serializer
       _yamlSerializer = new SerializerBuilder()
-      .WithNamingConvention(CamelCaseNamingConvention.Instance)
-      .WithIndentedSequences()
-      .Build();
+        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+        .WithIndentedSequences()
+        .Build();
 
       // initialize the yaml deserializer
       _yamlDeserializer = new DeserializerBuilder()
-      .WithNamingConvention(CamelCaseNamingConvention.Instance)
-      .Build();
+        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+        .Build();
     } 
 
     // Deserializes from json text file
